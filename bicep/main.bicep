@@ -1,8 +1,20 @@
 targetScope = 'subscription'
 
+@description('Azure region for deployment')
 param location string = 'australiaeast'
+
+@description('Environment name (dev or prod)')
+@allowed(['dev', 'prod'])
 param environment string
+
+@description('Recovery Services Vault name')
+@minLength(2)
+@maxLength(50)
 param vaultName string
+
+@description('SSH public key for VM access (base64 encoded)')
+param sshPublicKey string = ''
+
 param subscriptionId string = subscription().subscriptionId
 
 // Reference resource groups (must exist)
@@ -24,6 +36,7 @@ module devVm1 'modules/vm.bicep' = {
     environment: 'dev'
     vnetResourceGroupName: devRg.name
     subscriptionId: subscriptionId
+    sshPublicKey: sshPublicKey
   }
 }
 
@@ -36,6 +49,7 @@ module devVm2 'modules/vm.bicep' = {
     environment: 'dev'
     vnetResourceGroupName: devRg.name
     subscriptionId: subscriptionId
+    sshPublicKey: sshPublicKey
   }
 }
 
@@ -49,6 +63,7 @@ module prodVm1 'modules/vm.bicep' = {
     environment: 'prod'
     vnetResourceGroupName: prodRg.name
     subscriptionId: subscriptionId
+    sshPublicKey: sshPublicKey
   }
 }
 
@@ -61,6 +76,7 @@ module prodVm2 'modules/vm.bicep' = {
     environment: 'prod'
     vnetResourceGroupName: prodRg.name
     subscriptionId: subscriptionId
+    sshPublicKey: sshPublicKey
   }
 }
 
@@ -71,6 +87,7 @@ module rsv 'modules/rsv.bicep' = {
   params: {
     location: location
     vaultName: vaultName
+    environment: environment
   }
 }
 
@@ -83,6 +100,7 @@ module backupPolicy1 'modules/backup-policy.bicep' = {
     policyName: 'daily-2pm-35days'
     backupTime: '14:00'
     retentionDays: 35
+    environment: environment
   }
   dependsOn: [rsv]
 }
@@ -96,6 +114,7 @@ module backupPolicy2 'modules/backup-policy.bicep' = {
     policyName: 'daily-205pm-10days'
     backupTime: '14:05'
     retentionDays: 10
+    environment: environment
   }
   dependsOn: [rsv]
 }

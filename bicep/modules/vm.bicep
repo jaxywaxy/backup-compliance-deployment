@@ -1,9 +1,26 @@
+@description('Azure region for deployment')
 param location string
+
+@description('Virtual machine name')
 param vmName string
+
+@description('VM size (SKU)')
 param vmSize string = 'Standard_B2s'
+
+@description('Admin username for VM access')
 param adminUsername string = 'azureuser'
+
+@description('SSH public key for key-based authentication')
+@secure()
+param sshPublicKey string = ''
+
+@description('Environment name')
 param environment string
+
+@description('Virtual network resource group name')
 param vnetResourceGroupName string
+
+@description('Azure subscription ID')
 param subscriptionId string
 
 // Reference the existing virtual network
@@ -47,7 +64,15 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {
       computerName: vmName
       adminUsername: adminUsername
       linuxConfiguration: {
-        disablePasswordAuthentication: false
+        disablePasswordAuthentication: !empty(sshPublicKey)
+        ssh: !empty(sshPublicKey) ? {
+          publicKeys: [
+            {
+              path: '/home/${adminUsername}/.ssh/authorized_keys'
+              keyData: sshPublicKey
+            }
+          ]
+        } : null
       }
     }
     storageProfile: {

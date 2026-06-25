@@ -2,6 +2,8 @@ param vaultName string
 param policyName string
 param backupTime string
 param retentionDays int
+param environment string = 'prod'
+param tags object = {}
 
 resource vault 'Microsoft.RecoveryServices/vaults@2023-04-01' existing = {
   name: vaultName
@@ -35,6 +37,10 @@ resource backupPolicy 'Microsoft.RecoveryServices/vaults/backupPolicies@2023-04-
     }
     timeZone: 'UTC'
   }
+  tags: union({
+    environment: environment
+    managed: 'true'
+  }, tags)
 }
 
 output policyId string = backupPolicy.id

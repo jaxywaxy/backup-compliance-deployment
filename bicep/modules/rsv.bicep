@@ -11,10 +11,6 @@ resource vault 'Microsoft.RecoveryServices/vaults@2023-04-01' = {
   }
   properties: {
     publicNetworkAccess: 'Enabled'
-    redundancySettings: {
-      crossRegionRestore: 'Disabled'
-      standardTierStorageRedundancy: 'LocallyRedundant'
-    }
   }
   tags: union({
     environment: environment

@@ -1,5 +1,7 @@
 param location string
 param vaultName string
+param environment string = 'prod'
+param tags object = {}
 
 resource vault 'Microsoft.RecoveryServices/vaults@2023-04-01' = {
   name: vaultName
@@ -14,6 +16,10 @@ resource vault 'Microsoft.RecoveryServices/vaults@2023-04-01' = {
       standardTierStorageRedundancy: 'LocallyRedundant'
     }
   }
+  tags: union({
+    environment: environment
+    managed: 'true'
+  }, tags)
 }
 
 resource vaultBackupConfig 'Microsoft.RecoveryServices/vaults/backupconfig@2023-04-01' = {

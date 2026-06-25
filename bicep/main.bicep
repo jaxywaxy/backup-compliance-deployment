@@ -3,6 +3,7 @@ targetScope = 'subscription'
 param location string = 'australiaeast'
 param environment string
 param vaultName string
+param subscriptionId string = subscription().subscriptionId
 
 // Reference resource groups (must exist)
 resource devRg 'Microsoft.Resources/resourceGroups@2023-07-01' existing = {
@@ -21,6 +22,8 @@ module devVm1 'modules/vm.bicep' = {
     location: location
     vmName: 'vm-dev-001'
     environment: 'dev'
+    vnetResourceGroupName: devRg.name
+    subscriptionId: subscriptionId
   }
 }
 
@@ -31,6 +34,8 @@ module devVm2 'modules/vm.bicep' = {
     location: location
     vmName: 'vm-dev-002'
     environment: 'dev'
+    vnetResourceGroupName: devRg.name
+    subscriptionId: subscriptionId
   }
 }
 
@@ -42,6 +47,8 @@ module prodVm1 'modules/vm.bicep' = {
     location: location
     vmName: 'vm-prod-001'
     environment: 'prod'
+    vnetResourceGroupName: prodRg.name
+    subscriptionId: subscriptionId
   }
 }
 
@@ -52,6 +59,8 @@ module prodVm2 'modules/vm.bicep' = {
     location: location
     vmName: 'vm-prod-002'
     environment: 'prod'
+    vnetResourceGroupName: prodRg.name
+    subscriptionId: subscriptionId
   }
 }
 

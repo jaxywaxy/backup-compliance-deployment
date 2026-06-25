@@ -3,6 +3,20 @@ param vmName string
 param vmSize string = 'Standard_B2s'
 param adminUsername string = 'azureuser'
 param environment string
+param vnetResourceGroupName string
+param subscriptionId string
+
+// Reference the existing virtual network
+resource vnet 'Microsoft.Network/virtualNetworks@2023-04-01' existing = {
+  scope: resourceGroup(subscriptionId, vnetResourceGroupName)
+  name: 'vnet-${environment}'
+}
+
+// Reference the default subnet
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' existing = {
+  parent: vnet
+  name: 'default'
+}
 
 resource nic 'Microsoft.Network/networkInterfaces@2023-04-01' = {
   name: '${vmName}-nic'
@@ -14,7 +28,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2023-04-01' = {
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           subnet: {
-            id: '/subscriptions/594e0bd0-2a8d-4419-b281-87869c20fd03/resourceGroups/rg-${environment}/providers/Microsoft.Network/virtualNetworks/vnet-${environment}/subnets/default'
+            id: subnet.id
           }
         }
       }

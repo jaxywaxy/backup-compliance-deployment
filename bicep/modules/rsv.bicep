@@ -1,33 +1,35 @@
+@description('Azure region for deployment')
 param location string
+
+@description('Recovery Services Vault name')
 param vaultName string
+
+@description('Environment name')
 param environment string = 'prod'
+
+@description('Additional tags for the vault')
 param tags object = {}
 
-resource vault 'Microsoft.RecoveryServices/vaults@2023-04-01' = {
-  name: vaultName
-  location: location
-  sku: {
-    name: 'Standard'
-  }
-  properties: {
-    publicNetworkAccess: 'Enabled'
-  }
-  tags: union({
-    environment: environment
-    managed: 'true'
-  }, tags)
-}
-
-resource vaultBackupConfig 'Microsoft.RecoveryServices/vaults/backupconfig@2023-04-01' = {
-  parent: vault
-  name: 'vaultconfig'
-  properties: {
-    enhancedSecurityState: 'Enabled'
-    softDeleteFeatureState: 'Enabled'
-    resourceGuardOperationRequests: []
+module vault 'br:mcr.microsoft.com/bicep/avm/res/recovery-services/vault:0.2.0' = {
+  name: '${vaultName}-deploy'
+  params: {
+    name: vaultName
+    location: location
+    enableTelemetry: false
+    backupConfig: {
+      enhancedSecurityState: 'Enabled'
+      softDeleteFeatureState: 'Enabled'
+    }
+    securitySettings: {
+      publicNetworkAccess: 'Enabled'
+    }
+    tags: union({
+      environment: environment
+      managed: 'true'
+    }, tags)
   }
 }
 
-output vaultId string = vault.id
-output vaultName string = vault.name
+output vaultId string = vault.outputs.resourceId
+output vaultName string = vault.outputs.name
 output vaultResourceGroup string = resourceGroup().name

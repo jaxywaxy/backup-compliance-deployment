@@ -14,6 +14,10 @@ param adminUsername string = 'azureuser'
 @secure()
 param sshPublicKey string = ''
 
+@description('Admin password (required if SSH key not provided)')
+@secure()
+param adminPassword string = ''
+
 @description('Environment name')
 param environment string
 
@@ -63,6 +67,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {
     osProfile: {
       computerName: vmName
       adminUsername: adminUsername
+      adminPassword: !empty(adminPassword) ? adminPassword : null
       linuxConfiguration: {
         disablePasswordAuthentication: !empty(sshPublicKey)
         ssh: !empty(sshPublicKey) ? {

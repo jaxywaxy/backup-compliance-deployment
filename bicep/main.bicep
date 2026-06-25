@@ -12,8 +12,12 @@ param environment string
 @maxLength(50)
 param vaultName string
 
-@description('SSH public key for VM access (base64 encoded)')
+@description('SSH public key for VM access')
 param sshPublicKey string = ''
+
+@description('Admin password for VMs (required if SSH key not provided)')
+@secure()
+param adminPassword string = ''
 
 param subscriptionId string = subscription().subscriptionId
 
@@ -37,6 +41,7 @@ module devVm1 'modules/vm.bicep' = {
     vnetResourceGroupName: devRg.name
     subscriptionId: subscriptionId
     sshPublicKey: sshPublicKey
+    adminPassword: adminPassword
   }
 }
 
@@ -50,6 +55,7 @@ module devVm2 'modules/vm.bicep' = {
     vnetResourceGroupName: devRg.name
     subscriptionId: subscriptionId
     sshPublicKey: sshPublicKey
+    adminPassword: adminPassword
   }
 }
 
@@ -64,6 +70,7 @@ module prodVm1 'modules/vm.bicep' = {
     vnetResourceGroupName: prodRg.name
     subscriptionId: subscriptionId
     sshPublicKey: sshPublicKey
+    adminPassword: adminPassword
   }
 }
 
@@ -77,6 +84,7 @@ module prodVm2 'modules/vm.bicep' = {
     vnetResourceGroupName: prodRg.name
     subscriptionId: subscriptionId
     sshPublicKey: sshPublicKey
+    adminPassword: adminPassword
   }
 }
 

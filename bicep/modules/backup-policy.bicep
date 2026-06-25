@@ -14,28 +14,22 @@ resource backupPolicy 'Microsoft.RecoveryServices/vaults/backupPolicies@2023-04-
   name: policyName
   properties: {
     backupManagementType: 'AzureIaasVM'
-    instantRpRetentionRangeInDays: 5
     schedulePolicy: {
       schedulePolicyType: 'SimpleSchedulePolicy'
       scheduleRunFrequency: 'Daily'
       scheduleRunTimes: [
         '${backupTime}:00'
       ]
-      scheduleWeeklyFrequency: 0
     }
     retentionPolicy: {
       retentionPolicyType: 'LongTermRetentionPolicy'
       dailySchedule: {
-        retentionTimes: [
-          '${backupTime}:00'
-        ]
         retentionDuration: {
           count: retentionDays
           durationType: 'Days'
         }
       }
     }
-    timeZone: 'UTC'
   }
   tags: union({
     environment: environment

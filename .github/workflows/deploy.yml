@@ -1,0 +1,122 @@
+name: Deploy Backup Compliance Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+      enableBackup:
+        description: 'Enable backup on prod VM (prod only)'
+        required: false
+        type: boolean
+        default: false
+
+  push:
+    branches:
+      - main
+    paths:
+      - 'bicep/**'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  validate:
+    name: Validate Bicep
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+      - name: Validate Bicep templates
+        run: |
+          find bicep -name '*.bicep' | while read file; do
+            echo "Validating $file"
+            az bicep build --file "$file" --outdir /tmp || exit 1
+          done
+
+  deploy:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    needs: validate
+
+    if: github.event_name == 'workflow_dispatch'
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: '594e0bd0-2a8d-4419-b281-87869c20fd03'
+
+      - name: Create resource groups if needed
+        run: |
+          for rg in rg-dev rg-prod; do
+            az group create \
+              --name $rg \
+              --location australiaeast \
+              --tags managed=true || echo "Resource group $rg already exists"
+          done
+
+      - name: Create virtual network (dev)
+        run: |
+          az network vnet create \
+            --resource-group rg-dev \
+            --name vnet-dev \
+            --address-prefix 10.0.0.0/16 \
+            --subnet-name default \
+            --subnet-prefix 10.0.0.0/24 \
+            || echo "VNet already exists"
+
+      - name: Create virtual network (prod)
+        run: |
+          az network vnet create \
+            --resource-group rg-prod \
+            --name vnet-prod \
+            --address-prefix 10.1.0.0/16 \
+            --subnet-name default \
+            --subnet-prefix 10.1.0.0/24 \
+            || echo "VNet already exists"
+
+      - name: Deploy infrastructure
+        run: |
+          az deployment sub create \
+            --name "backup-compliance-deployment-${{ github.run_id }}" \
+            --location australiaeast \
+            --template-file bicep/main.bicep \
+            --parameters "bicep/parameters/${{ inputs.environment || 'prod' }}.bicepparam"
+
+      - name: Enable backup on prod VM
+        if: ${{ inputs.environment == 'prod' && inputs.enableBackup == true }}
+        shell: pwsh
+        run: |
+          ./scripts/enable-backup.ps1 `
+            -VaultName 'rsv-prod-aue-001' `
+            -VaultResourceGroup 'rg-prod' `
+            -VmName 'vm-prod-001' `
+            -VmResourceGroup 'rg-prod' `
+            -PolicyName 'daily-2pm-35days' `
+            -SubscriptionId '594e0bd0-2a8d-4419-b281-87869c20fd03'
+
+      - name: Output deployment summary
+        run: |
+          echo "✅ Deployment completed successfully"
+          echo ""
+          echo "Deployment Details:"
+          echo "- Environment: ${{ inputs.environment || 'prod' }}"
+          echo "- Subscription: 594e0bd0-2a8d-4419-b281-87869c20fd03"
+          echo "- Location: australiaeast"

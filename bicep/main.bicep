@@ -91,36 +91,9 @@ module rsv 'modules/rsv.bicep' = {
   }
 }
 
-// Deploy backup policy 1: Daily at 2pm, retention 35 days
-module backupPolicy1 'modules/backup-policy.bicep' = {
-  scope: prodRg
-  name: 'deploy-policy-daily-35d'
-  params: {
-    vaultName: vaultName
-    policyName: 'daily-2pm-35days'
-    backupTime: '14:00'
-    retentionDays: 35
-    environment: environment
-  }
-  dependsOn: [rsv]
-}
-
-// Deploy backup policy 2: Daily at 2:05pm, retention 10 days
-module backupPolicy2 'modules/backup-policy.bicep' = {
-  scope: prodRg
-  name: 'deploy-policy-daily-10d'
-  params: {
-    vaultName: vaultName
-    policyName: 'daily-205pm-10days'
-    backupTime: '14:05'
-    retentionDays: 10
-    environment: environment
-  }
-  dependsOn: [rsv]
-}
-
 output deploymentSummary object = {
   vaultName: vaultName
+  vaultResourceGroup: prodRg.name
   devVms: [
     devVm1.outputs.vmName
     devVm2.outputs.vmName
@@ -129,8 +102,7 @@ output deploymentSummary object = {
     prodVm1.outputs.vmName
     prodVm2.outputs.vmName
   ]
-  policies: [
-    'daily-2pm-35days'
-    'daily-205pm-10days'
+  backupPolicies: [
+    'Create policies manually or via enable-backup.ps1 script'
   ]
 }

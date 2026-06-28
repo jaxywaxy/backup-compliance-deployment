@@ -1,40 +1,51 @@
-ignore_patterns:
+ignore:
   # Auto-created by Azure
-  - pattern: "Microsoft.Network/networkWatchers/*"
+  - resource_type: "Microsoft.Network/networkWatchers"
     reason: "Auto-created by Azure in each region, not IaC-managed"
 
+  # Landing Zone infrastructure (deployed separately)
+  - resource_type: "Microsoft.Network/virtualNetworks"
+    reason: "VNets are part of LZ pattern, referenced by vm.bicep via 'existing' keyword"
+
+  - resource_type: "Microsoft.Network/virtualNetworks/subnets"
+    reason: "Subnets are part of LZ pattern, managed as part of VNet deployment"
+
   # Auto-managed by VMs (child resources)
-  - pattern: "Microsoft.Compute/disks/*"
+  - resource_type: "Microsoft.Compute/disks"
     reason: "OS/data disks are auto-created and managed by VMs, not separately defined in IaC"
 
   # Drift-agent test infrastructure (not production)
-  - pattern: "Microsoft.Storage/storageAccounts/(drifttest.*|driftfuncstore.*)"
-    reason: "Test/drift-agent resources used during development, not production infrastructure"
+  - resource_name: "drifttest.*"
+    reason: "Test infrastructure used during development, not production"
 
-  - pattern: "Microsoft.Web/sites/drift-agent.*"
+  - resource_name: "driftfuncstore.*"
+    reason: "Test storage account for drift-agent, not production"
+
+  - resource_type: "Microsoft.Web/sites"
+    resource_name: "drift-agent-*"
     reason: "Drift-agent test Function App, not production"
 
-  - pattern: "Microsoft.Web/serverFarms/AustraliaEastLinuxDynamicPlan"
+  - resource_type: "Microsoft.Web/serverFarms"
+    resource_name: "AustraliaEastLinuxDynamicPlan"
     reason: "Drift-agent test App Service Plan, not production"
 
-  - pattern: "Microsoft.OperationalInsights/workspaces/.*"
+  - resource_type: "Microsoft.OperationalInsights/workspaces"
     reason: "Auto-created by Azure Defender/Monitor, not explicitly managed in IaC"
 
-  - pattern: "Microsoft.Insights/components/drift-agent.*"
+  - resource_type: "Microsoft.Insights/components"
+    resource_name: "drift-agent-*"
     reason: "Drift-agent test Application Insights, not production"
 
-  - pattern: "microsoft.insights/actiongroups/.*Smart Detection.*"
+  - resource_type: "microsoft.insights/actiongroups"
+    resource_name: ".*Smart Detection.*"
     reason: "Auto-created by Application Insights Smart Detection feature"
 
-  # Parameter expression drift (expected)
-  - pattern: "Microsoft.Compute/virtualMachines/.*"
-    property_path: "tags.environment"
-    reason: "Parameter expressions resolve at deployment time ([parameters('environment')] → dev/prod)"
+  # Parameter expression drift (expected differences)
+  - resource_type: "Microsoft.Compute/virtualMachines"
+    reason: "Parameter expressions in tags.environment resolve at deployment time"
 
-  - pattern: "Microsoft.Network/networkInterfaces/.*"
-    property_path: "name"
-    reason: "Parameter-based names resolve at deployment time (parameters('vmName')-nic → vm-dev-001-nic)"
+  - resource_type: "Microsoft.Network/networkInterfaces"
+    reason: "Parameter-based names resolve at deployment time"
 
-  - pattern: "Microsoft.RecoveryServices/vaults/.*"
-    property_path: "apiVersion"
+  - resource_type: "Microsoft.RecoveryServices/vaults"
     reason: "API version differences are metadata, not functional drift"

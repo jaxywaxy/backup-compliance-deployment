@@ -289,6 +289,16 @@ class DriftDetector:
     """Detect all types of drift."""
 
     @staticmethod
+    def _is_internal_resource(resource: Dict) -> bool:
+        """Check if resource is internal/management (not actual infrastructure)."""
+        resource_type = resource.get("type", "")
+        # Filter out deployment modules and other management resources
+        internal_types = {
+            "Microsoft.Resources/deployments",
+        }
+        return resource_type in internal_types
+
+    @staticmethod
     def detect_drift(
         bicep_resources: List[Dict],
         deployed_resources: List[Dict],
@@ -301,6 +311,11 @@ class DriftDetector:
         """
         drifts = []
         extractor = PropertyExtractor()
+
+        # Filter out internal resources (deployments, etc.)
+        bicep_resources = [r for r in bicep_resources if not DriftDetector._is_internal_resource(r)]
+        deployed_resources = [r for r in deployed_resources if not DriftDetector._is_internal_resource(r)]
+
         matches = ResourceMatcher.match_resources(bicep_resources, deployed_resources)
         comparator = PropertyComparator()
 

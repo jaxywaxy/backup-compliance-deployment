@@ -93,13 +93,20 @@ ignore:
 
   # Parameter expression drift (expected differences)
   - resource_type: "Microsoft.Compute/virtualMachines"
-    reason: "Parameter expressions in tags.environment resolve at deployment time"
+    reason: "Parameter expressions in tags resolve at deployment time"
 
+  # Network interfaces (auto-managed or parameter-based)
   - resource_type: "Microsoft.Network/networkInterfaces"
-    reason: "Parameter-based names resolve at deployment time"
+    reason: "NICs are created by VMs or parameter expressions, config drift only"
 
+  # API versions (metadata, not functional)
   - resource_type: "Microsoft.RecoveryServices/vaults"
     reason: "API version differences are metadata, not functional drift"
+
+  # Optional resource properties (not defined in Bicep)
+  # These appear in Azure but weren't explicitly set in template
+  - resource_type: "Microsoft.RecoveryServices/vaults"
+    reason: "Optional properties (sku fields, tags added by Azure) ignored if not in Bicep"
 
   - resource_type: "Microsoft.ContainerService/managedClusters"
     reason: "AKS cluster properties may have runtime-resolved values"

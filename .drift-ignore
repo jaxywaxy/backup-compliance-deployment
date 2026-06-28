@@ -1,0 +1,40 @@
+ignore_patterns:
+  # Auto-created by Azure
+  - pattern: "Microsoft.Network/networkWatchers/*"
+    reason: "Auto-created by Azure in each region, not IaC-managed"
+
+  # Auto-managed by VMs (child resources)
+  - pattern: "Microsoft.Compute/disks/*"
+    reason: "OS/data disks are auto-created and managed by VMs, not separately defined in IaC"
+
+  # Drift-agent test infrastructure (not production)
+  - pattern: "Microsoft.Storage/storageAccounts/(drifttest.*|driftfuncstore.*)"
+    reason: "Test/drift-agent resources used during development, not production infrastructure"
+
+  - pattern: "Microsoft.Web/sites/drift-agent.*"
+    reason: "Drift-agent test Function App, not production"
+
+  - pattern: "Microsoft.Web/serverFarms/AustraliaEastLinuxDynamicPlan"
+    reason: "Drift-agent test App Service Plan, not production"
+
+  - pattern: "Microsoft.OperationalInsights/workspaces/.*"
+    reason: "Auto-created by Azure Defender/Monitor, not explicitly managed in IaC"
+
+  - pattern: "Microsoft.Insights/components/drift-agent.*"
+    reason: "Drift-agent test Application Insights, not production"
+
+  - pattern: "microsoft.insights/actiongroups/.*Smart Detection.*"
+    reason: "Auto-created by Application Insights Smart Detection feature"
+
+  # Parameter expression drift (expected)
+  - pattern: "Microsoft.Compute/virtualMachines/.*"
+    property_path: "tags.environment"
+    reason: "Parameter expressions resolve at deployment time ([parameters('environment')] → dev/prod)"
+
+  - pattern: "Microsoft.Network/networkInterfaces/.*"
+    property_path: "name"
+    reason: "Parameter-based names resolve at deployment time (parameters('vmName')-nic → vm-dev-001-nic)"
+
+  - pattern: "Microsoft.RecoveryServices/vaults/.*"
+    property_path: "apiVersion"
+    reason: "API version differences are metadata, not functional drift"

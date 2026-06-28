@@ -21,21 +21,22 @@ def get_live_state(
     Query resources and return their live state.
 
     Supports both resource group and subscription scopes.
+    When a resource_group is specified, filters results to only that RG
+    (even in subscription scope) to avoid cross-RG drift.
 
     Uses DefaultAzureCredential, which tries (in order):
       - Environment variables (AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID)
       - Managed Identity
       - Azure CLI (`az login`)
 
-    So if you're logged in via az login, this just works.
-
     Args:
-        resource_group: Name of the Azure resource group (required for RG scope).
+        resource_group: Name of the Azure resource group. If provided, filters
+                       to only resources in this RG (recommended).
         subscription_id: Azure subscription ID. Falls back to AZURE_SUBSCRIPTION_ID env var.
         scope: "resource_group" (default) or "subscription"
 
     Returns:
-        List of resource dicts with type, name, location, and properties.
+        List of resource dicts with type, name, location, resource_group, and properties.
     """
     sub_id = subscription_id or os.environ.get("AZURE_SUBSCRIPTION_ID")
     if not sub_id:
@@ -48,9 +49,29 @@ def get_live_state(
 
     resources = []
 
-    if scope == "subscription":
-        # List all resources in the subscription
+    if scope == "subscription" and resource_group:
+        # Query subscription scope but filter to specific resource group
+        # This handles subscription-scoped templates while only reporting on target RG
         for resource in client.resources.list(expand="properties"):
+            # Extract resource group from resource ID: /subscriptions/.../resourceGroups/RG_NAME/...
+            rg_from_id = _extract_resource_group_from_id(resource.id)
+            if rg_from_id and rg_from_id.lower() == resource_group.lower():
+                resource_dict = {
+                    "type": resource.type,
+                    "name": resource.name,
+                    "location": resource.location,
+                    "tags": resource.tags or {},
+                    "sku": _extract_sku(resource),
+                    "kind": resource.kind,
+                    "properties": _safe_properties(resource),
+                    "id": resource.id,
+                    "resource_group": rg_from_id,
+                }
+                resources.append(resource_dict)
+    elif scope == "subscription":
+        # List all resources in subscription (no RG filtering)
+        for resource in client.resources.list(expand="properties"):
+            rg_from_id = _extract_resource_group_from_id(resource.id)
             resource_dict = {
                 "type": resource.type,
                 "name": resource.name,
@@ -60,10 +81,11 @@ def get_live_state(
                 "kind": resource.kind,
                 "properties": _safe_properties(resource),
                 "id": resource.id,
+                "resource_group": rg_from_id,
             }
             resources.append(resource_dict)
     else:
-        # List all resources in the resource group
+        # List all resources in the specific resource group
         if not resource_group:
             raise ValueError("resource_group required for resource_group scope")
 
@@ -77,10 +99,26 @@ def get_live_state(
                 "kind": resource.kind,
                 "properties": _safe_properties(resource),
                 "id": resource.id,
+                "resource_group": resource_group,
             }
             resources.append(resource_dict)
 
     return resources
+
+
+def _extract_resource_group_from_id(resource_id: str) -> str | None:
+    """Extract resource group name from Azure resource ID.
+
+    Example: /subscriptions/SUB_ID/resourceGroups/MY_RG/providers/... → MY_RG
+    """
+    parts = resource_id.lower().split('/')
+    try:
+        rg_index = parts.index('resourcegroups')
+        if rg_index + 1 < len(parts):
+            return parts[rg_index + 1]
+    except (ValueError, IndexError):
+        pass
+    return None
 
 
 def _extract_sku(resource) -> dict | None:

@@ -19,7 +19,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DRIFT_DIR="${SCRIPT_DIR}/drift-detection"
+DRIFT_DIR="${SCRIPT_DIR}"
+REPO_ROOT="${SCRIPT_DIR}/.."
 DEFAULT_RG="rg-prod"
 DEFAULT_LOCATION="australiaeast"
 
@@ -97,8 +98,8 @@ EOF
     echo_success "Local setup complete!"
     echo ""
     echo "Next steps:"
-    echo "  1. Edit drift-detection/.env with your credentials"
-    echo "  2. Run: source drift-detection/.venv/bin/activate"
+    echo "  1. Edit .env with your credentials"
+    echo "  2. Run: source .venv/bin/activate"
     echo "  3. Run: ./DRIFT_QUICK_START.sh check"
 }
 
@@ -137,7 +138,7 @@ run_drift_check() {
     fi
 
     # Run analysis
-    python analyze_drift.py "../${bicep_file}" "$resource_group"
+    python analyze_drift.py "${REPO_ROOT}/${bicep_file}" "$resource_group"
 
     echo_success "Drift check complete!"
     echo ""
@@ -317,12 +318,12 @@ ENVIRONMENT:
   ARM_PARAMETERS       JSON parameters (optional, default: dev)
 
 FILES:
-  drift-detection/.env           Configuration (.gitignored)
-  drift-detection/.drift-ignore  Ignore patterns (version controlled)
-  reports/                       Generated reports (HTML, JSON, MD)
+  .env                 Configuration (.gitignored)
+  .drift-ignore        Ignore patterns (version controlled)
+  reports/             Generated reports (HTML, JSON, MD)
 
 DOCUMENTATION:
-  See DRIFT_DETECTION_GUIDE.md for detailed documentation
+  See docs/DRIFT_DETECTION_GUIDE.md for detailed documentation
 
 EOF
 }

@@ -1,31 +1,26 @@
-# Reports and outputs
-reports/
-drift_output*.txt
-*.html
+# Bicep build output
+*.json
+!.github/
 
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv
-*.egg-info/
-dist/
-build/
+*.py[cod]
+*$py.class
+.venv/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
+# Environment
+.env
+.env.local
+
+# PowerShell
+*.ps1.lock

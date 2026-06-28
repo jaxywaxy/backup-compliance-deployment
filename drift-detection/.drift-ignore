@@ -103,6 +103,40 @@ ignore:
   - resource_type: "Microsoft.RecoveryServices/vaults"
     reason: "API version differences are metadata, not functional drift"
 
+  # Recovery Services child resources with unresolvable parameter expressions
+  - resource_type: "Microsoft.RecoveryServices/vaults/replicationFabrics"
+    reason: "Child resource with unresolvable parameter expressions in name"
+
+  - resource_type: "Microsoft.RecoveryServices/vaults/replicationFabrics/replicationProtectionContainers"
+    reason: "Child resource with unresolvable parameter expressions in name"
+
+  - resource_type: "Microsoft.RecoveryServices/vaults/replicationFabrics/replicationProtectionContainers/replicationProtectionContainerMappings"
+    reason: "Child resource with unresolvable parameter expressions in name"
+
+  - resource_type: "Microsoft.RecoveryServices/vaults/replicationPolicies"
+    reason: "Child resource with unresolvable parameter expressions in name"
+
+  - resource_type: "Microsoft.RecoveryServices/vaults/backupstorageconfig"
+    reason: "Child resource with unresolvable parameter expressions in name"
+
+  - resource_type: "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers"
+    reason: "Child resource with unresolvable parameter expressions in name"
+
+  - resource_type: "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems"
+    reason: "Child resource with unresolvable parameter expressions in name"
+
+  - resource_type: "Microsoft.RecoveryServices/vaults/backupPolicies"
+    reason: "Child resource with unresolvable parameter expressions in name"
+
+  - resource_type: "Microsoft.RecoveryServices/vaults/backupconfig"
+    reason: "Child resource with unresolvable parameter expressions in name"
+
+  - resource_type: "Microsoft.RecoveryServices/vaults/replicationAlertSettings"
+    reason: "Child resource with unresolvable parameter expressions in name"
+
+  - resource_type: "Microsoft.Network/privateEndpoints/privateDnsZoneGroups"
+    reason: "Child resource with unresolvable parameter expressions in name"
+
   # Optional resource properties (not defined in Bicep)
   # These appear in Azure but weren't explicitly set in template
   - resource_type: "Microsoft.RecoveryServices/vaults"

@@ -1,0 +1,113 @@
+name: Bicep Drift Check
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'bicep/**/*.bicep'
+      - '.github/workflows/bicep-drift-check.yml'
+      - 'drift-detection/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to check (dev/prod)'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - dev
+          - prod
+
+jobs:
+  drift-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r drift-detection/requirements.txt
+
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Azure Login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Run drift check (Dev)
+        if: github.event.inputs.environment == 'dev' || github.event_name == 'push'
+        id: drift-dev
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_PARAMETERS: '{"environment":"dev","location":"australiaeast"}'
+          PYTHONUNBUFFERED: 1
+        run: |
+          cd drift-detection
+          python -u analyze_drift.py ../bicep/main.bicep rg-dev 2>&1 | tee drift_output_dev.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "❌ Drift check failed"
+            exit $EXIT_CODE
+          fi
+
+          echo "✓ Drift check completed"
+
+      - name: Run drift check (Prod)
+        if: github.event.inputs.environment == 'prod' || github.event_name == 'push'
+        id: drift-prod
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_PARAMETERS: '{"environment":"prod","location":"australiaeast"}'
+          PYTHONUNBUFFERED: 1
+        run: |
+          cd drift-detection
+          python -u analyze_drift.py ../bicep/main.bicep rg-prod 2>&1 | tee drift_output_prod.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "❌ Drift check failed"
+            exit $EXIT_CODE
+          fi
+
+          echo "✓ Drift check completed"
+
+      - name: Upload drift reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: drift-reports
+          path: drift-detection/reports/
+          retention-days: 30
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## 🔍 Bicep Drift Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Environments Checked" >> $GITHUB_STEP_SUMMARY
+          echo "- **rg-dev**: bicep/main.bicep" >> $GITHUB_STEP_SUMMARY
+          echo "- **rg-prod**: bicep/main.bicep" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Reports" >> $GITHUB_STEP_SUMMARY
+          echo "Download artifacts to view:" >> $GITHUB_STEP_SUMMARY
+          echo "- **rg-dev-drift.html** — Dev environment drift report" >> $GITHUB_STEP_SUMMARY
+          echo "- **rg-prod-drift.html** — Prod environment drift report" >> $GITHUB_STEP_SUMMARY

@@ -92,7 +92,13 @@ def run(bicep_file: str, resource_group: str):
 
     # Step 3: Load ignore patterns
     print("\nStep 3: Loading ignore patterns...")
-    ignore_patterns = IgnorePatternList.from_file(Path(".drift-ignore"))
+    ignore_file = Path(".drift-ignore")
+    print(f"  Looking for: {ignore_file.absolute()}")
+    print(f"  File exists: {ignore_file.exists()}")
+
+    ignore_patterns = IgnorePatternList.from_file(ignore_file)
+    print(f"  Patterns loaded: {len(ignore_patterns.patterns)}")
+
     if ignore_patterns.patterns:
         ignore_patterns.print_summary()
     else:

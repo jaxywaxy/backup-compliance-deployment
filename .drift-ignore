@@ -104,3 +104,28 @@ ignore_patterns:
 
   - pattern: "Microsoft.ContainerService/managedClusters/.*"
     reason: "AKS cluster properties may have runtime-resolved values"
+
+  # API Management auto-managed resources
+  - pattern: "Microsoft.ApiManagement/service/.*/groups/.*"
+    reason: "Built-in groups (administrators, developers, guests) auto-created by API Management"
+
+  - pattern: "Microsoft.ApiManagement/service/.*/products/.*"
+    reason: "Built-in products (Starter, Unlimited) auto-created by API Management"
+
+  - pattern: "Microsoft.ApiManagement/service/.*/loggers/.*"
+    reason: "Default logger auto-created by API Management"
+
+  - pattern: "Microsoft.ApiManagement/service/.*/diagnostics/.*"
+    reason: "Diagnostic settings auto-created by API Management"
+
+  - pattern: "Microsoft.ApiManagement/service/.*/apis/.*/policies/.*"
+    reason: "API policies often managed via portal or Azure Policy, not Bicep"
+
+  - pattern: "Microsoft.ApiManagement/service/.*/policies/.*"
+    reason: "Service-level policies often managed via portal, not Bicep"
+
+  - pattern: "Microsoft.ApiManagement/service/.*/tags/.*"
+    reason: "Tags auto-created and managed by API Management"
+
+  - pattern: "Microsoft.ApiManagement/service/.*/operationTags/.*"
+    reason: "Operation tags auto-managed by API Management"

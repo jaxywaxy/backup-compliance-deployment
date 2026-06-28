@@ -355,8 +355,6 @@ class PropertyComparator:
         # be reported as drift. Examples: sku fields, tags added by policies,
         # Azure-managed system properties, etc.
         # Only report properties that are explicitly defined in Bicep template.
-                        )
-                    )
 
         return diffs
 

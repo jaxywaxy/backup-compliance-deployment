@@ -1,5 +1,6 @@
 # Production-Ready Bicep Infrastructure Drift Detection System
 
+
 ## Executive Summary
 
 Managing cloud infrastructure as code (IaC) is critical for consistency, security, and cost control. However, infrastructure changes often occur outside the IaC pipeline—through manual Azure Portal updates, scripts, or system-managed configurations. These **out-of-band changes** create drift between your intended infrastructure state (Bicep templates) and actual deployed state.

@@ -77,7 +77,7 @@ def diff_states(
 
     # Apply ignore patterns if provided
     drifts_to_convert = detector_drifts
-    if ignore_patterns:
+    if ignore_patterns and ignore_patterns.patterns:
         # Convert detector drifts to dict format for filtering
         drifts_as_dicts = [
             {
@@ -87,7 +87,15 @@ def diff_states(
             }
             for d in detector_drifts
         ]
-        filtered_dict_drifts, _ = ignore_patterns.filter_drifts(drifts_as_dicts)
+        filtered_dict_drifts, ignored_drifts = ignore_patterns.filter_drifts(drifts_as_dicts)
+
+        # Log what was filtered
+        if ignored_drifts:
+            print(f"  ℹ Filtered {len(ignored_drifts)} drift(s) by ignore patterns:")
+            for d in ignored_drifts[:5]:  # Show first 5
+                print(f"    - {d['type']}/{d['name']}: {d.get('ignored_reason', 'matched pattern')}")
+            if len(ignored_drifts) > 5:
+                print(f"    ... and {len(ignored_drifts) - 5} more")
 
         # Rebuild detector drifts from filtered list
         filtered_names = {(d["type"], d["name"]) for d in filtered_dict_drifts}

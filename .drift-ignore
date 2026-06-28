@@ -1,131 +1,59 @@
-ignore_patterns:
-  # Auto-created by Azure
-  - pattern: "Microsoft.Network/networkWatchers/*"
-    reason: "Auto-created by Azure in each region, not IaC-managed"
+# Bicep Drift Ignore Patterns for backup-compliance-deployment
+#
+# Patterns that should not be reported as drift.
 
-  # Landing Zone infrastructure (deployed separately)
-  - pattern: "Microsoft.Network/virtualNetworks/.*"
-    reason: "VNets are part of LZ pattern, referenced by vm.bicep via 'existing' keyword"
+ignore:
+  # System-managed resources — auto-created by Azure
+  - resource_type: "Microsoft.Network/networkWatchers"
+    reason: "Azure automatically creates network watchers in each region"
 
-  - pattern: "Microsoft.Network/virtualNetworks/.*/subnets/.*"
-    reason: "Subnets are part of LZ pattern, managed as part of VNet deployment"
+  - resource_type: "Microsoft.OperationalInsights/workspaces"
+    reason: "Default Log Analytics workspace created by Azure monitoring"
 
-  # Auto-managed by VMs and Compute
-  - pattern: "Microsoft.Compute/disks/*"
-    reason: "OS/data disks are auto-created and managed by VMs, not separately defined in IaC"
+  # Landing Zone infrastructure — managed separately from this Bicep template
+  - resource_type: "Microsoft.Network/virtualNetworks"
+    reason: "VNets are part of Landing Zone pattern, managed separately"
 
-  - pattern: "Microsoft.Compute/virtualMachines/.*/extensions/.*"
-    reason: "VM extensions auto-managed by VMs, not separately defined in Bicep"
+  - resource_type: "Microsoft.Network/virtualNetworks/*"
+    reason: "VNets and their resources are part of Landing Zone infrastructure"
 
-  - pattern: "Microsoft.Compute/virtualMachineScaleSets/.*"
-    reason: "VMSS auto-created by AKS node pools, managed separately"
+  # Auto-managed by Azure services
+  - resource_type: "Microsoft.Compute/disks"
+    reason: "OS and data disks are auto-created and managed by VMs"
 
-  # AKS auto-managed resources
-  - pattern: "Microsoft.ContainerService/managedClusters/.*/agentPools/.*"
-    reason: "Agent pools auto-managed by AKS cluster"
+  - resource_type: "Microsoft.Compute/virtualMachines/extensions"
+    reason: "VM extensions are auto-managed by the VM parent resource"
 
-  - pattern: "Microsoft.Network/loadBalancers/.*"
-    reason: "Load balancers auto-created by AKS and App Services"
+  # Child resources with unresolvable parameter names (cannot deploy without runtime parameter resolution)
+  - resource_type: "Microsoft.RecoveryServices/vaults/replicationFabrics"
+    reason: "Child resource with unresolvable parameter expressions in name"
 
-  - pattern: "Microsoft.Network/publicIPAddresses/.*"
-    reason: "Public IPs auto-created by LBs, App Gateways, or referenced as existing"
+  - resource_type: "Microsoft.RecoveryServices/vaults/replicationFabrics/replicationProtectionContainers"
+    reason: "Child resource with unresolvable parameter expressions in name"
 
-  - pattern: "Microsoft.Network/networkSecurityGroups/.*"
-    reason: "NSGs often referenced as existing from shared networking"
+  - resource_type: "Microsoft.RecoveryServices/vaults/replicationFabrics/replicationProtectionContainers/replicationProtectionContainerMappings"
+    reason: "Child resource with unresolvable parameter expressions in name"
 
-  - pattern: "Microsoft.Network/routeTables/.*"
-    reason: "Route tables often referenced as existing from shared networking"
+  - resource_type: "Microsoft.RecoveryServices/vaults/replicationPolicies"
+    reason: "Child resource with unresolvable parameter expressions in name"
 
-  # Storage account auto-managed services
-  - pattern: "Microsoft.Storage/storageAccounts/.*/blobServices/.*"
-    reason: "Blob services auto-created with storage account"
+  - resource_type: "Microsoft.RecoveryServices/vaults/backupstorageconfig"
+    reason: "Child resource with unresolvable parameter expressions in name"
 
-  - pattern: "Microsoft.Storage/storageAccounts/.*/fileServices/.*"
-    reason: "File services auto-created with storage account"
+  - resource_type: "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers"
+    reason: "Child resource with unresolvable parameter expressions in name"
 
-  - pattern: "Microsoft.Storage/storageAccounts/.*/tableServices/.*"
-    reason: "Table services auto-created with storage account"
+  - resource_type: "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems"
+    reason: "Child resource with unresolvable parameter expressions in name"
 
-  - pattern: "Microsoft.Storage/storageAccounts/.*/queueServices/.*"
-    reason: "Queue services auto-created with storage account"
+  - resource_type: "Microsoft.RecoveryServices/vaults/backupPolicies"
+    reason: "Child resource with unresolvable parameter expressions in name"
 
-  - pattern: "Microsoft.Storage/storageAccounts/.*/blobServices/.*/containers/.*"
-    reason: "Blob containers often auto-created or managed separately"
+  - resource_type: "Microsoft.RecoveryServices/vaults/backupconfig"
+    reason: "Child resource with unresolvable parameter expressions in name"
 
-  # SQL Server auto-managed resources
-  - pattern: "Microsoft.Sql/servers/.*/databases/master"
-    reason: "Master database auto-created with SQL Server"
+  - resource_type: "Microsoft.RecoveryServices/vaults/replicationAlertSettings"
+    reason: "Child resource with unresolvable parameter expressions in name"
 
-  - pattern: "Microsoft.Sql/servers/.*/auditingSettings/.*"
-    reason: "Auditing settings auto-configured by policies"
-
-  - pattern: "Microsoft.Sql/servers/.*/securityAlertPolicies/.*"
-    reason: "Security policies auto-configured by Azure Defender"
-
-  # App Service auto-managed resources
-  - pattern: "Microsoft.Web/sites/.*/slots/.*"
-    reason: "Deployment slots auto-created for certain App Service configurations"
-
-  - pattern: "Microsoft.Web/sites/.*/config/.*"
-    reason: "Site config managed by App Service runtime"
-
-  - pattern: "Microsoft.Web/sites/.*/extensions/.*"
-    reason: "Site extensions auto-managed by App Service"
-
-  # System/Compliance resources
-  - pattern: "Microsoft.Authorization/locks/.*"
-    reason: "Resource locks auto-created by policies, not IaC-managed"
-
-  - pattern: "Microsoft.Authorization/roleAssignments/.*"
-    reason: "Role assignments auto-created by policies or RBAC automation"
-
-  # Monitoring/Diagnostics
-  - pattern: "Microsoft.OperationalInsights/workspaces/.*"
-    reason: "Auto-created by Azure Defender/Monitor, not explicitly managed in IaC"
-
-  - pattern: "microsoft.insights/actiongroups/.*Smart Detection.*"
-    reason: "Auto-created by Application Insights Smart Detection feature"
-
-  - pattern: "Microsoft.Insights/diagnosticSettings/.*"
-    reason: "Diagnostic settings auto-created by Azure policies"
-
-  # Parameter expression drift (expected differences)
-  - pattern: "Microsoft.Compute/virtualMachines/.*"
-    property_path: "tags.environment"
-    reason: "Parameter expressions resolve at deployment time ([parameters('environment')] → dev/prod)"
-
-  - pattern: "Microsoft.Network/networkInterfaces/.*"
-    property_path: "name"
-    reason: "Parameter-based names resolve at deployment time (parameters('vmName')-nic → vm-dev-001-nic)"
-
-  - pattern: "Microsoft.RecoveryServices/vaults/.*"
-    property_path: "apiVersion"
-    reason: "API version differences are metadata, not functional drift"
-
-  - pattern: "Microsoft.ContainerService/managedClusters/.*"
-    reason: "AKS cluster properties may have runtime-resolved values"
-
-  # API Management auto-managed resources
-  - pattern: "Microsoft.ApiManagement/service/.*/groups/.*"
-    reason: "Built-in groups (administrators, developers, guests) auto-created by API Management"
-
-  - pattern: "Microsoft.ApiManagement/service/.*/products/.*"
-    reason: "Built-in products (Starter, Unlimited) auto-created by API Management"
-
-  - pattern: "Microsoft.ApiManagement/service/.*/loggers/.*"
-    reason: "Default logger auto-created by API Management"
-
-  - pattern: "Microsoft.ApiManagement/service/.*/diagnostics/.*"
-    reason: "Diagnostic settings auto-created by API Management"
-
-  - pattern: "Microsoft.ApiManagement/service/.*/apis/.*/policies/.*"
-    reason: "API policies often managed via portal or Azure Policy, not Bicep"
-
-  - pattern: "Microsoft.ApiManagement/service/.*/policies/.*"
-    reason: "Service-level policies often managed via portal, not Bicep"
-
-  - pattern: "Microsoft.ApiManagement/service/.*/tags/.*"
-    reason: "Tags auto-created and managed by API Management"
-
-  - pattern: "Microsoft.ApiManagement/service/.*/operationTags/.*"
-    reason: "Operation tags auto-managed by API Management"
+  - resource_type: "Microsoft.Network/privateEndpoints/privateDnsZoneGroups"
+    reason: "Child resource with unresolvable parameter expressions in name"

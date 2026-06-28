@@ -14,21 +14,8 @@ ignore_patterns:
   - pattern: "Microsoft.Compute/disks/*"
     reason: "OS/data disks are auto-created and managed by VMs, not separately defined in IaC"
 
-  # Drift-agent test infrastructure (not production)
-  - pattern: "Microsoft.Storage/storageAccounts/(drifttest.*|driftfuncstore.*)"
-    reason: "Test/drift-agent resources used during development, not production infrastructure"
-
-  - pattern: "Microsoft.Web/sites/drift-agent.*"
-    reason: "Drift-agent test Function App, not production"
-
-  - pattern: "Microsoft.Web/serverFarms/AustraliaEastLinuxDynamicPlan"
-    reason: "Drift-agent test App Service Plan, not production"
-
   - pattern: "Microsoft.OperationalInsights/workspaces/.*"
     reason: "Auto-created by Azure Defender/Monitor, not explicitly managed in IaC"
-
-  - pattern: "Microsoft.Insights/components/drift-agent.*"
-    reason: "Drift-agent test Application Insights, not production"
 
   - pattern: "microsoft.insights/actiongroups/.*Smart Detection.*"
     reason: "Auto-created by Application Insights Smart Detection feature"

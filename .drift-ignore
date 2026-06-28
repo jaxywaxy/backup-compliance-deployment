@@ -10,17 +10,86 @@ ignore_patterns:
   - pattern: "Microsoft.Network/virtualNetworks/.*/subnets/.*"
     reason: "Subnets are part of LZ pattern, managed as part of VNet deployment"
 
-  # Auto-managed by VMs (child resources)
+  # Auto-managed by VMs and Compute
   - pattern: "Microsoft.Compute/disks/*"
     reason: "OS/data disks are auto-created and managed by VMs, not separately defined in IaC"
 
+  - pattern: "Microsoft.Compute/virtualMachines/.*/extensions/.*"
+    reason: "VM extensions auto-managed by VMs, not separately defined in Bicep"
+
+  - pattern: "Microsoft.Compute/virtualMachineScaleSets/.*"
+    reason: "VMSS auto-created by AKS node pools, managed separately"
+
+  # AKS auto-managed resources
+  - pattern: "Microsoft.ContainerService/managedClusters/.*/agentPools/.*"
+    reason: "Agent pools auto-managed by AKS cluster"
+
+  - pattern: "Microsoft.Network/loadBalancers/.*"
+    reason: "Load balancers auto-created by AKS and App Services"
+
+  - pattern: "Microsoft.Network/publicIPAddresses/.*"
+    reason: "Public IPs auto-created by LBs, App Gateways, or referenced as existing"
+
+  - pattern: "Microsoft.Network/networkSecurityGroups/.*"
+    reason: "NSGs often referenced as existing from shared networking"
+
+  - pattern: "Microsoft.Network/routeTables/.*"
+    reason: "Route tables often referenced as existing from shared networking"
+
+  # Storage account auto-managed services
+  - pattern: "Microsoft.Storage/storageAccounts/.*/blobServices/.*"
+    reason: "Blob services auto-created with storage account"
+
+  - pattern: "Microsoft.Storage/storageAccounts/.*/fileServices/.*"
+    reason: "File services auto-created with storage account"
+
+  - pattern: "Microsoft.Storage/storageAccounts/.*/tableServices/.*"
+    reason: "Table services auto-created with storage account"
+
+  - pattern: "Microsoft.Storage/storageAccounts/.*/queueServices/.*"
+    reason: "Queue services auto-created with storage account"
+
+  - pattern: "Microsoft.Storage/storageAccounts/.*/blobServices/.*/containers/.*"
+    reason: "Blob containers often auto-created or managed separately"
+
+  # SQL Server auto-managed resources
+  - pattern: "Microsoft.Sql/servers/.*/databases/master"
+    reason: "Master database auto-created with SQL Server"
+
+  - pattern: "Microsoft.Sql/servers/.*/auditingSettings/.*"
+    reason: "Auditing settings auto-configured by policies"
+
+  - pattern: "Microsoft.Sql/servers/.*/securityAlertPolicies/.*"
+    reason: "Security policies auto-configured by Azure Defender"
+
+  # App Service auto-managed resources
+  - pattern: "Microsoft.Web/sites/.*/slots/.*"
+    reason: "Deployment slots auto-created for certain App Service configurations"
+
+  - pattern: "Microsoft.Web/sites/.*/config/.*"
+    reason: "Site config managed by App Service runtime"
+
+  - pattern: "Microsoft.Web/sites/.*/extensions/.*"
+    reason: "Site extensions auto-managed by App Service"
+
+  # System/Compliance resources
+  - pattern: "Microsoft.Authorization/locks/.*"
+    reason: "Resource locks auto-created by policies, not IaC-managed"
+
+  - pattern: "Microsoft.Authorization/roleAssignments/.*"
+    reason: "Role assignments auto-created by policies or RBAC automation"
+
+  # Monitoring/Diagnostics
   - pattern: "Microsoft.OperationalInsights/workspaces/.*"
     reason: "Auto-created by Azure Defender/Monitor, not explicitly managed in IaC"
 
   - pattern: "microsoft.insights/actiongroups/.*Smart Detection.*"
     reason: "Auto-created by Application Insights Smart Detection feature"
 
-  # Parameter expression drift (expected)
+  - pattern: "Microsoft.Insights/diagnosticSettings/.*"
+    reason: "Diagnostic settings auto-created by Azure policies"
+
+  # Parameter expression drift (expected differences)
   - pattern: "Microsoft.Compute/virtualMachines/.*"
     property_path: "tags.environment"
     reason: "Parameter expressions resolve at deployment time ([parameters('environment')] → dev/prod)"
@@ -32,3 +101,6 @@ ignore_patterns:
   - pattern: "Microsoft.RecoveryServices/vaults/.*"
     property_path: "apiVersion"
     reason: "API version differences are metadata, not functional drift"
+
+  - pattern: "Microsoft.ContainerService/managedClusters/.*"
+    reason: "AKS cluster properties may have runtime-resolved values"

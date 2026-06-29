@@ -91,9 +91,10 @@ ignore:
   - resource_type: "Microsoft.Insights/diagnosticSettings"
     reason: "Diagnostic settings auto-created by Azure policies"
 
-  # Parameter expression drift (expected differences)
+  # Tag drift on VMs (parameter expressions in tags resolve at deployment time)
   - resource_type: "Microsoft.Compute/virtualMachines"
-    reason: "Parameter expressions in tags resolve at deployment time"
+    drift_type: "tags"
+    reason: "Parameter expressions in tags resolve at deployment time, not functional drift"
 
   # Network interfaces (auto-managed or parameter-based)
   - resource_type: "Microsoft.Network/networkInterfaces"

@@ -196,10 +196,7 @@ class ResourceMatcher:
                 best_match_idx = -1
 
                 # For identical-named resources, try contextual matching via related resources
-                if all_identical and resource_type == "Microsoft.Network/networkInterfaces":
-                    # Try to match NIC via its associated VM
-                    associated_vm = ResourceMatcher._find_associated_resource(bicep_resource, bicep_resources, "Microsoft.Compute/virtualMachines")
-                elif resource_type == "Microsoft.Compute/disks":
+                if resource_type == "Microsoft.Compute/disks":
                     # For disks, try to match via parent VM
                     # Extract VM name from disk name (e.g., vm-prod-002_OsDisk_1_<hash> → vm-prod-002)
                     disk_name = bicep_resource.get("name", "")

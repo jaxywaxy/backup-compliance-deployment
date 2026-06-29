@@ -169,6 +169,18 @@ To optimize:
 - Current: Development team
 - Review: Backup/Infrastructure team before prod deployments
 
+## Drift Detection
+
+A comprehensive drift detection system is included in the `drift-detection/` folder. See [drift-detection/docs/DRIFT_DETECTION_GUIDE.md](drift-detection/docs/DRIFT_DETECTION_GUIDE.md) for full documentation.
+
+**Quick start:**
+
+```bash
+cd drift-detection
+./DRIFT_QUICK_START.sh setup
+./DRIFT_QUICK_START.sh check
+```
+
 ## Related Repositories
 
 - [BackupComplianceAgent](../BackupComplianceAgent/) — Compliance scanning & remediation
